@@ -1,7 +1,35 @@
-use actix_web::{middleware, web, App, HttpRequest, HttpServer};
+use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer};
+use actix_cors::Cors;
 
 async fn index(_req: HttpRequest) -> &'static str {
     "Hello Dev-ES Community!!"
+}
+
+async fn sieve(req: HttpRequest) -> HttpResponse {
+    match req.match_info().get("number").map(|n| n.parse().ok()) {
+        Some(Some(number)) => HttpResponse::Ok().json(_sieve(number)),
+        _ => HttpResponse::BadRequest().finish(),
+    }
+}
+
+fn _sieve(number: u64) -> Vec<u64> {
+    let upper_bound = number + 1;
+    let mut is_prime = vec![true; upper_bound as usize];
+    for i in 2..upper_bound / 2 {
+        if is_prime[i as usize] {
+            let mut j = i * 2;
+            while j < upper_bound {
+                is_prime[j as usize] = false;
+                j += i;
+            }
+        }
+    }
+    is_prime
+        .into_iter()
+        .enumerate()
+        .filter(|val| val.1)
+        .map(|val| val.0 as u64)
+        .collect()
 }
 
 #[actix_web::main]
@@ -22,9 +50,14 @@ async fn main() -> std::io::Result<()> {
     let server = HttpServer::new(|| {
         App::new()
             // enable logger
+            .wrap(middleware::Compress::default())
             .wrap(middleware::Logger::default())
+            .wrap(
+                Cors::permissive(),
+            )
             .service(web::resource("/index.html").to(index))
             .service(web::resource("/").to(index))
+            .service(web::resource("/sieve/{number}").to(sieve))
     })
     .bind(&server_addr)?;
 
