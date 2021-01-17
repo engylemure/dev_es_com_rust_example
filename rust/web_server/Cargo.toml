@@ -1,0 +1,14 @@
+[package]
+name = "web_server"
+version = "0.1.0"
+authors = ["Jordao Rosario <jordao.rosario01@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "3"
+env_logger = "0.8"
+
+[dev-dependencies]
+actix-rt = "1"
